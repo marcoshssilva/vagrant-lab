@@ -6,7 +6,8 @@ Vagrant.configure("2") do |config|
     vb.memory = "512"
   end
 
-  config.vm.provision "shell", path: "vagrant.sh"
+  config.vm.provision "file", source: "html", destination: "~/vagrant/html"
+  config.vm.provision "shell", path: "vagrant.sh", privileged: true
 
   # config.vm.provision "shell", inline: <<-SHELL
   #   echo "Anything you need..."
