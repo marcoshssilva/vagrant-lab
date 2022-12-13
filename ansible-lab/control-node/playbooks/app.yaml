@@ -1,0 +1,82 @@
+---
+- name: Configurar servidor de aplicação Java
+  hosts: app01
+
+  user: vagrant
+  become: yes
+  vars:
+    - dbhost: "db01"
+    - dbname: "notes"
+    - dbusername: "root"
+    - dbpassword: "devopsmaonamassa"
+  tasks:
+    - name: Instalação do Git Client
+      yum:
+        name: git
+        state: latest
+    - name: Configurar hosts do lab ansible
+      lineinfile: 
+        line: "{{item}}"
+        path: /etc/hosts
+        state: present
+      with_items: 
+        - 192.168.191.141 control-node
+        - 192.168.177.47 app01
+        - 192.168.184.52 db01
+    - name: Adicionar o usuario de app01
+      user:
+        name: app
+        comment: Usuario de aplicacao
+        uid: 500
+    - name: Instalacao do Maven
+      yum:
+        name: maven
+        state: latest
+    - name: Instalação do Java 1.8
+      yum:
+        name: java-1.8.0-openjdk
+        state: latest
+    - name: Criação do diretório de app
+      file:
+        path: /opt/notes
+        state: directory
+        owner: vagrant
+    - name: Clone do repositorio
+      git:
+        repo: https://github.com/callicoder/spring-boot-mysql-rest-api-tutorial.git
+        dest: /opt/notes
+        clone: yes
+        force: yes
+    - name: Configurar arquivo de propriedades para camada de banco de dados
+      template:
+        src: application.properties
+        dest: /opt/notes/src/main/resources/application.properties
+    - name: Gerar pacote da aplicação
+      command: cd /opt/notes && ./mvnw package
+      become_user: app
+    - name: Registrar versão atual do pacote
+      shell:
+        cmd: mvn -o -q -Dexec.executable=echo -Dexec.args='${project.version}' exec:exec
+        chdir: /opt/notes/
+      register: app_version
+    - name: Configurar serviço do Systemd
+      template:
+        src: etc/systemd/system/notes.service
+        dest: /etc/systemd/system/notes.service
+        notify: reload daemon
+    - name: Iniciar o serviço notes
+      service:
+        name: notes
+        state: restarted
+  roles:
+    - configuracao-default-so
+  handlers:
+    - name: reload app
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "notes"
+    - name: reload daemon
+      systemd:
+        daemon_reexec: yes
+

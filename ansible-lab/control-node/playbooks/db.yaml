@@ -1,0 +1,25 @@
+---
+- name: Configurar servido de banco de dados
+  hosts: db01
+
+  user: vagrant
+  become: yes
+  vars_files:
+    - vars/main.yml
+  vars:
+    - dbname: "db01"
+    - dbusername: "root"
+    - dbpassword: "devopsmaonamassa"
+  tasks:
+    - name: Configurar hosts lab ansible
+      lineinfile: 
+        line: "{{item}}"
+        path: /etc/hosts
+        state: present
+      with_items: 
+        - 192.168.191.141 control-node
+        - 192.168.177.47 app01
+        - 192.168.184.52 db01
+  roles:
+    - configuracao-default-so
+    - role: geerlingguy.mysql

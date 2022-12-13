@@ -1,0 +1,14 @@
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+  config.vm.hostname = "app01"
+  config.vm.network "private_network", ip: "192.168.1.3"
+  config.vm.network "forwarded_port", guest: 8080, host:8080
+
+  config.vm.provision "shell", inline: <<-SHELL
+    #/bin/sh
+    cat << EOT >> /home/vagrant/.ssh/authorized_keys
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLT5bXy+8y5g+D/LVi+jJckxK2rIAyvwLHywt+uMDgxDV+ue/v0TFXo/ziaKdd5wisBzj0vSyl4pa5FPSKI5QAlGFbkQHJexADgg+AKOay5Blw2b6hWY8fsEOXR7YjweoCK0d9c6bMbkI8b/L+sD1dYlcmnvrKUF8Gcyq2QFKuR8qKeNyOyLfI5JKqj2t0WQtkRAyscRhufTB3/8aOWnbWB7eGUKl3eTZH2KWqg5wprjyBu4VzaNFVSAIA9yv7qC/7DnpwGUWY5iPAuLxy8E8X0vey4X95m12W8JxqcK2c+jly+u+/jgxoMngE813bc1gnpsNE9WVb1yfRQwfOAUHr
+EOT
+  SHELL
+end
