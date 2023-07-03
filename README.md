@@ -14,4 +14,3 @@ vagrant halt
 ```
 vagrant destroy
 ```
-Obs: não remove imagem.
